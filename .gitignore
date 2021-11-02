@@ -4,5 +4,5 @@
 .Ruserdata
 .DS_Store
 .Rprofile
-data/
+data/IUCN/
 renv/
