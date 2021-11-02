@@ -1,4 +1,7 @@
-debut <- Sys.time()
+#' 
+#' Create `funbiogeo` datasets
+#' 
+
 
 ## Setup project ----
 
@@ -20,7 +23,13 @@ lonlat <- 4326
 mammals <- sf::st_read(here::here("data", "IUCN", "MAMMALS_TERRESTRIAL_ONLY",
                                   "MAMMALS_TERRESTRIAL_ONLY.shp"))
 
+## Remove uncertain presences ----
+
 mammals <- mammals[-grep("Presence Uncertain", mammals$"legend"), ]
+
+
+## Define projection ----
+
 sf::st_crs(mammals) <- lonlat
 
 
@@ -55,7 +64,7 @@ europe <- sf::st_transform(europe, lonlat)
 europe <- sf::st_union(europe)
 
 
-## Select and crop French mammals ranges ----
+## Select and crop European mammals ranges ----
 
 mammals <- sf::st_intersection(mammals, europe)
 
@@ -129,7 +138,8 @@ pantheria <- readr::read_delim(here::here("data",
                                delim = "\t")
 pantheria <- as.data.frame(pantheria)
 
-species[which(!(species %in% pantheria$"MSW05_Binomial"))]
+
+## Rename species ----
 
 species_list <- list()
 species_list[[1]] <- c("Crocidura pachyura", "Crocidura ichnusae")
@@ -150,7 +160,13 @@ for (i in 1:length(species_list)) {
 
 species[which(!(species %in% pantheria$"MSW05_Binomial"))]
 
+
+## Select species ----
+
 pantheria <- pantheria[pantheria$"MSW05_Binomial" %in% species, ]
+
+
+## Select traits ----
 
 traits <- c("5-1_AdultBodyMass_g", "9-1_GestationLen_d", "15-1_LitterSize", 
             "17-1_MaxLongevity_m", "23-1_SexualMaturityAge_d", "6-1_DietBreadth")
@@ -162,8 +178,11 @@ colnames(pantheria) <- c("order", "family", "species", "adult_body_mass",
                          "gestation_length", "litter_size", "max_longevity",
                          "sexual_maturity_age", "diet_breadth")
 
+
+## Replace NA ----
+
 for (i in 4:ncol(pantheria)) 
-pantheria[ , i] <- ifelse(pantheria[ , i] == -999, NA, pantheria[ , i])
+  pantheria[ , i] <- ifelse(pantheria[ , i] == -999, NA, pantheria[ , i])
 
 pantheria <- pantheria[order(pantheria$"species"), ]
 rownames(pantheria) <- NULL
@@ -195,4 +214,3 @@ save(pantheria,   file = here::here("outputs", "mammals_species_traits.rda"))
 save(species,     file = here::here("outputs", "mammals_sites_species.rda"))
 save(sites_locs,  file = here::here("outputs", "mammals_sites_locations.rda"))
 
-print(Sys.time() - debut)
