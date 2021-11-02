@@ -1,0 +1,8 @@
+^renv$
+^renv\.lock$
+^analyses$
+^data$
+^LICENSE\.md$
+^eumammals.Rproj$
+^.*\.Rproj$
+^\.Rproj\.user$

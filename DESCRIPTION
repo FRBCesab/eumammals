@@ -1,0 +1,34 @@
+Package: eumammals
+Type: Package
+Title: Range of European Mammals Species
+Version: 1.0.0
+Authors@R: c(
+    person(given   = "Nicolas",
+           family  = "Casajus",
+           role    = c("aut", "cre", "cph"),
+           email   = "nicolas.casajus@fondationbiodiversite.fr",
+           comment = c(ORCID = "0000-0002-5537-5294")))
+Description: Creates reproducible datasets for the R package 'funbiogeo' 
+    available at <https://github.com/frbcesab/funbiogeo> from IUCN mammals 
+    range maps (<https://www.iucnredlist.org/resources/spatial-data-download>)
+    and the traits database PanTHERIA 
+    (<https://esapubs.org/archive/ecol/E090/184/metadata.htm>).
+URL: https://github.com/frbcesab/eumammals
+BugReports: https://github.com/frbcesab/eumammals/issues
+License: GPL (>= 2)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Imports: 
+    devtools,
+    here,
+    parallel,
+    readr,
+    renv,
+    rgeos,
+    rnaturalearth,
+    rnaturalearthhires,
+    sf,
+    terra
+Remotes:
+    ropensci/rnaturalearthhires
