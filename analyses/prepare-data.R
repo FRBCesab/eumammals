@@ -5,7 +5,9 @@
 
 ## Setup project ----
 
+renv::activate()
 renv::restore()
+
 devtools::load_all()
 sf::sf_use_s2(FALSE)
 
@@ -100,6 +102,7 @@ mammals <- do.call(rbind, parallel::mclapply(1:length(species), function(i) {
 ras <- terra::rast(terra::vect(europe), res = 0.5)
 ras <- terra::rasterize(terra::vect(europe), ras, field = 1)
 terra::crs(ras) <- "epsg:4326"
+names(ras)      <- "europe_grid"
 
 
 ## Rasterize species ranges ----
@@ -188,6 +191,27 @@ pantheria <- pantheria[order(pantheria$"species"), ]
 rownames(pantheria) <- NULL
 
 
+## Anonymized species ----
+
+
+splabels <- paste0("00", 1:length(species))
+splabels <- substr(splabels, nchar(splabels) - 2, nchar(splabels))
+splabels <- paste0("sp_", splabels)
+
+for (i in 1:length(species)) {
+  
+  spname <- tolower(gsub("\\s", "_", species[i]))
+  
+  pos <- which(colnames(mammals_sf) == spname)
+  colnames(mammals_sf)[pos] <- splabels[i]
+  
+  pos <- which(pantheria$"species" == species[i])
+  pantheria$"species"[pos] <- splabels[i]
+}
+
+pantheria <- pantheria[ , -c(1:2)]
+
+
 ## Richness map ----
 
 plot(sf::st_geometry(europe))
@@ -213,4 +237,3 @@ sf::st_write(sites,      here::here("outputs", "mammals_sites_locations.gpkg"), 
 save(pantheria,   file = here::here("outputs", "mammals_species_traits.rda"))
 save(species,     file = here::here("outputs", "mammals_sites_species.rda"))
 save(sites_locs,  file = here::here("outputs", "mammals_sites_locations.rda"))
-
