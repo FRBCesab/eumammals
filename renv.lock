@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.1.1",
+    "Version": "4.1.2",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -576,10 +576,10 @@
     },
     "terra": {
       "Package": "terra",
-      "Version": "1.4-11",
+      "Version": "1.4-20",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "12f8a0e6cad73c6c022ff579bbc6d82b"
+      "Hash": "2fd9b6a814d577e2e4a7d04d4e067bc0"
     },
     "testthat": {
       "Package": "testthat",

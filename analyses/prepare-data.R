@@ -224,16 +224,24 @@ plot(sf::st_geometry(europe), add = TRUE)
 
 sites      <- mammals_sf[ , -c(2:(ncol(mammals_sf) - 1))]
 
-sites_locs <- data.frame("site" = mammals_sf[ , "cell", drop = TRUE], 
-                         sf::st_coordinates(mammals_sf))
+# sites_locs <- data.frame("site" = mammals_sf[ , "cell", drop = TRUE], 
+#                          sf::st_coordinates(mammals_sf))
+sites_locs <- data.frame(sf::st_coordinates(mammals_sf))
+rownames(sites_locs) <- mammals_sf[ , "cell", drop = TRUE]
 colnames(sites_locs) <- tolower(colnames(sites_locs))
 
 species    <- sf::st_drop_geometry(mammals_sf)
+rownames(species) <- species$"cell"
+species <- species[ , -1]
+
+rownames(pantheria) <- pantheria$"species"
+pantheria <- pantheria[ , -1]
 
 terra::writeRaster(ras,  here::here("outputs", "europe_grid.tif"), overwrite = TRUE)
 sf::st_write(europe,     here::here("outputs", "europe_boundaries.gpkg"), delete_dsn = TRUE)
 sf::st_write(mammals_sf, here::here("outputs", "mammals_sites_species.gpkg"), delete_dsn = TRUE)
 sf::st_write(sites,      here::here("outputs", "mammals_sites_locations.gpkg"), delete_dsn = TRUE)
+
 save(pantheria,   file = here::here("outputs", "mammals_species_traits.rda"))
 save(species,     file = here::here("outputs", "mammals_sites_species.rda"))
 save(sites_locs,  file = here::here("outputs", "mammals_sites_locations.rda"))

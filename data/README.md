@@ -18,3 +18,11 @@ A spatial polygon used to define the study area (Western Europe)
 IUCN mammals range maps (absent from this repository). Can be downloaded [here](https://www.iucnredlist.org/resources/spatial-data-download)
 
 **IMPORTANT**: shapefiles must be stored in `data/IUCN/MAMMALS_TERRESTRIAL_ONLY/`
+
+
+
+* **Worldclim**
+
+Bioclimatic variables were downloaded from: https://worldclim.org
+
+**IMPORTANT**: rasters must be stored in `data/worldclim/wc2.1_5m_bio/`
