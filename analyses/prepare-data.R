@@ -115,23 +115,28 @@ mammals <- terra::rast(mammals)
 names(mammals) <- tolower(gsub("\\s", "_", species))
 
 
-## Convert to Points (centroids) ----
+## Convert to sf ----
 
-cells <- 1:terra::ncell(mammals)
+mammals <- stars::st_as_stars(mammals)
+mammals <- sf::st_as_sf(mammals)
+mammals$"cell" <- 1:nrow(mammals)
 
-mammals_df  <- data.frame("cell" = paste0("fb_", cells), 
-                          terra::xyFromCell(mammals, cells),
-                          terra::values(mammals))
 
-empty_cells <- which(is.na(sum(mammals, na.rm = TRUE)[]))
-mammals_df  <- mammals_df[-empty_cells, ]
 
-for (i in 4:ncol(mammals_df)) 
-  mammals_df[ , i] <- ifelse(is.na(mammals_df[ , i]), 0, mammals_df[ , i])
-
-mammals_sf <- sf::st_as_sf(mammals_df, coords = 2:3)
-rownames(mammals_sf) <- NULL
-sf::st_crs(mammals_sf) <- lonlat
+# 
+# mammals_df  <- data.frame("cell" = paste0("fb_", cells), 
+#                           terra::xyFromCell(mammals, cells),
+#                           terra::values(mammals))
+# 
+# empty_cells <- which(is.na(sum(mammals, na.rm = TRUE)[]))
+# mammals_df  <- mammals_df[-empty_cells, ]
+# 
+# for (i in 4:ncol(mammals_df)) 
+#   mammals_df[ , i] <- ifelse(is.na(mammals_df[ , i]), 0, mammals_df[ , i])
+# 
+# mammals_sf <- sf::st_as_sf(mammals_df, coords = 2:3)
+# rownames(mammals_sf) <- NULL
+# sf::st_crs(mammals_sf) <- lonlat
 
 
 ## Import traits (Pantheria database) ----
@@ -202,8 +207,8 @@ for (i in 1:length(species)) {
   
   spname <- tolower(gsub("\\s", "_", species[i]))
   
-  pos <- which(colnames(mammals_sf) == spname)
-  colnames(mammals_sf)[pos] <- splabels[i]
+  pos <- which(colnames(mammals) == spname)
+  colnames(mammals)[pos] <- splabels[i]
   
   pos <- which(pantheria$"species" == species[i])
   pantheria$"species"[pos] <- splabels[i]
@@ -212,36 +217,33 @@ for (i in 1:length(species)) {
 pantheria <- pantheria[ , -c(1:2)]
 
 
+## Replace NA in mammals ----
+
+mammals_df <- sf::st_drop_geometry(mammals)
+
+col_s <- grep("sp_", colnames(mammals_df))
+
+for (i in col_s) {
+  mammals_df[ , i] <- ifelse(is.na(mammals_df[ , i]), 0, mammals_df[ , i])
+}
+
 ## Richness map ----
 
-plot(sf::st_geometry(europe))
-terra::plot(sum(mammals, na.rm = TRUE), add = TRUE, 
-            col = heat.colors(255, rev = TRUE))
-plot(sf::st_geometry(europe), add = TRUE)
+# plot(sf::st_geometry(europe))
+# terra::plot(sum(mammals, na.rm = TRUE), add = TRUE, 
+#             col = heat.colors(255, rev = TRUE))
+# plot(sf::st_geometry(europe), add = TRUE)
 
 
 ## Export layers ----
 
-sites      <- mammals_sf[ , -c(2:(ncol(mammals_sf) - 1))]
+sites_locs     <- mammals[ , -col_s]
+site_species   <- mammals_df[ , c(ncol(mammals_df), grep("^sp_", colnames(mammals_df)))]
+species_traits <- pantheria
 
-# sites_locs <- data.frame("site" = mammals_sf[ , "cell", drop = TRUE], 
-#                          sf::st_coordinates(mammals_sf))
-sites_locs <- data.frame(sf::st_coordinates(mammals_sf))
-rownames(sites_locs) <- mammals_sf[ , "cell", drop = TRUE]
-colnames(sites_locs) <- tolower(colnames(sites_locs))
+# terra::writeRaster(ras,  here::here("outputs", "europe_grid.tif"), overwrite = TRUE)
+# sf::st_write(europe,     here::here("outputs", "europe_boundaries.gpkg"), delete_dsn = TRUE)
+sf::st_write(sites_locs, here::here("outputs", "sites_locations.gpkg"), delete_dsn = TRUE)
 
-species    <- sf::st_drop_geometry(mammals_sf)
-rownames(species) <- species$"cell"
-species <- species[ , -1]
-
-rownames(pantheria) <- pantheria$"species"
-pantheria <- pantheria[ , -1]
-
-terra::writeRaster(ras,  here::here("outputs", "europe_grid.tif"), overwrite = TRUE)
-sf::st_write(europe,     here::here("outputs", "europe_boundaries.gpkg"), delete_dsn = TRUE)
-sf::st_write(mammals_sf, here::here("outputs", "mammals_sites_species.gpkg"), delete_dsn = TRUE)
-sf::st_write(sites,      here::here("outputs", "mammals_sites_locations.gpkg"), delete_dsn = TRUE)
-
-save(pantheria,   file = here::here("outputs", "mammals_species_traits.rda"))
-save(species,     file = here::here("outputs", "mammals_sites_species.rda"))
-save(sites_locs,  file = here::here("outputs", "mammals_sites_locations.rda"))
+save(species_traits, file = here::here("outputs", "species_traits.rda"))
+save(site_species,   file = here::here("outputs", "site_species.rda"))
