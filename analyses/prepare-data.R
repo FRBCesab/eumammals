@@ -77,6 +77,8 @@ species <- sort(unique(mammals$"binomial"))
 species <- species[-which(species %in% c("Canis lupaster", "Myotis escalerai",
                                          "Eptesicus serotinus"))]
 
+taxo <- sf::st_drop_geometry(mammals[ , c("binomial", "order_", "family")])
+
 mammals <- do.call(rbind, parallel::mclapply(1:length(species), function(i) {
 
   sp  <- species[i]
@@ -94,7 +96,7 @@ mammals <- do.call(rbind, parallel::mclapply(1:length(species), function(i) {
   sf::st_geometry(dat) <- geom
   dat
   
-}, mc.cores = 6))
+}, mc.cores = 12))
 
 
 ## Create grid ----
@@ -203,6 +205,8 @@ splabels <- paste0("00", 1:length(species))
 splabels <- substr(splabels, nchar(splabels) - 2, nchar(splabels))
 splabels <- paste0("sp_", splabels)
 
+taxo$species <- NA
+
 for (i in 1:length(species)) {
   
   spname <- tolower(gsub("\\s", "_", species[i]))
@@ -212,6 +216,9 @@ for (i in 1:length(species)) {
   
   pos <- which(pantheria$"species" == species[i])
   pantheria$"species"[pos] <- splabels[i]
+  
+  pos <- which(taxo$"binomial" == species[i])
+  taxo$"species"[pos] <- splabels[i]
 }
 
 pantheria <- pantheria[ , -c(1:2)]
@@ -237,8 +244,17 @@ for (i in col_s) {
 
 ## Export layers ----
 
+species_cat <- taxo[which(taxo$"binomial" %in% species), c("species", "order_")]
+species_cat <- species_cat[which(!duplicated(species_cat$"species")), ]
+species_cat <- species_cat[order(species_cat$"species"), ]
+colnames(species_cat)[2] <- "order"
+rownames(species_cat) <- NULL
+species_cat$"order" <- tools::toTitleCase(tolower(species_cat$"order"))
+species_categories <- species_cat
+
 sites_locs     <- mammals[ , -col_s]
 site_species   <- mammals_df[ , c(ncol(mammals_df), grep("^sp_", colnames(mammals_df)))]
+colnames(site_species)[1] <- "site"
 species_traits <- pantheria
 
 # terra::writeRaster(ras,  here::here("outputs", "europe_grid.tif"), overwrite = TRUE)
@@ -247,3 +263,4 @@ sf::st_write(sites_locs, here::here("outputs", "sites_locations.gpkg"), delete_d
 
 save(species_traits, file = here::here("outputs", "species_traits.rda"))
 save(site_species,   file = here::here("outputs", "site_species.rda"))
+save(species_categories,    file = here::here("outputs", "species_categories.rda"))
